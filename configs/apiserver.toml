@@ -1,0 +1,7 @@
+bind_addr = ":8080"
+log_level = "debug"
+[store]
+database_url = "postgres://tgbot:password@localhost:5432/tgbot_db?sslmode=disable"
+
+
+
