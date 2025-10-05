@@ -1,8 +1,10 @@
 package repository
 
-func (r *Repository) Sent(id int64) error {
+import "context"
+
+func (r *Repository) Sent(ctx context.Context, id int64) error {
 	query := `UPDATE notifications SET status = 'sent' WHERE id = $1`
-	_, err := r.store.GetConn().Exec(query, id)
+	_, err := r.store.DB.ExecContext(ctx, query, id)
 	if err != nil {
 		return err
 	}

@@ -1,13 +1,12 @@
 package store
 
 import (
-	"database/sql"
-
 	_ "github.com/lib/pq"
+	"github.com/wb-go/wbf/dbpg"
 )
 
 type Store struct {
-	db *sql.DB
+	DB *dbpg.DB
 }
 
 func New() *Store {
@@ -15,28 +14,24 @@ func New() *Store {
 }
 
 func (s *Store) Open(config string) error {
-	db, err := sql.Open("postgres", config)
+	opts := dbpg.Options{
+		MaxOpenConns: 1,
+	}
+	db, err := dbpg.New(config, nil, &opts)
 	if err != nil {
 		return err
 	}
 
-	if err := db.Ping(); err != nil {
+	if err := db.Master.Ping(); err != nil {
 		return err
 	}
-	s.db = db
+	s.DB = db
 	return nil
 }
 
-func (s *Store) GetConn() *sql.DB {
-	return s.db
-}
-
 func (s *Store) Close() {
-	err := s.db.Close()
+	err := s.DB.Master.Close()
 	if err != nil {
 		return
 	}
-}
-func (s *Store) SetConn(db *sql.DB) {
-	s.db = db
 }

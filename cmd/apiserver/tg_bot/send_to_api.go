@@ -3,10 +3,11 @@ package tg_bot
 import (
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"strings"
 	"time"
+
+	"github.com/wb-go/wbf/zlog"
 )
 
 func sendToAPI(chatID int64, message string, scheduledTime time.Time) {
@@ -24,14 +25,14 @@ func sendToAPI(chatID int64, message string, scheduledTime time.Time) {
 		strings.NewReader(requestBody),
 	)
 	if err != nil {
-		log.Printf("API error: %v", err)
+		zlog.Logger.Error().Err(err).Msg("API error")
 		return
 	}
 	defer resp.Body.Close()
 
 	// 3. Проверяем ответ
 	if resp.StatusCode != http.StatusCreated {
-		log.Printf("API bad status: %d", resp.StatusCode)
+		zlog.Logger.Error().Int("status", resp.StatusCode).Msg("API bad status")
 	}
 }
 
@@ -40,7 +41,7 @@ func deleteNotification(chatID int64, id string) {
 	req, _ := http.NewRequest("DELETE", "http://localhost:8080/notify/"+id, nil)
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		log.Printf("Delete error: %v", err)
+		zlog.Logger.Error().Err(err).Msg("Delete error")
 		return
 	}
 	defer resp.Body.Close()
@@ -54,7 +55,7 @@ func getStatus(chatID int64, id string) string {
 
 	resp, err := http.Get("http://localhost:8080/notify/" + id)
 	if err != nil {
-		log.Printf("Status error: %v", err)
+		zlog.Logger.Error().Err(err).Msg("Status error")
 		return ""
 	}
 	defer resp.Body.Close()

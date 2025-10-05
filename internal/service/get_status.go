@@ -1,7 +1,9 @@
 package service
 
-func (s *Service) Status(id int64) (string, error) {
-	status, err := s.repo.Status(id)
+import "context"
+
+func (s *Service) Status(ctx context.Context, id int64) (string, error) {
+	status, err := s.repo.Status(ctx, id)
 	if err != nil {
 		return "", err
 	}

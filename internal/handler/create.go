@@ -1,18 +1,19 @@
 package handler
 
 import (
+	"net/http"
+
 	"github.com/aabbuukkaarr8/TG-BOT/internal/service"
 	"github.com/aabbuukkaarr8/TG-BOT/pkg/validator"
 	"github.com/gin-gonic/gin"
-	"github.com/sirupsen/logrus"
-	"net/http"
+	"github.com/wb-go/wbf/zlog"
 )
 
 func (h *Handler) Create(c *gin.Context) {
 	var req CreateNotificationRequest
 	err := validator.BindJSON(&req, c.Request)
 	if err != nil {
-		logrus.WithError(err).Warn("Create: invalid request JSON")
+		zlog.Logger.Warn().Err(err).Msg("Create: invalid request JSON")
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
@@ -23,7 +24,7 @@ func (h *Handler) Create(c *gin.Context) {
 		ScheduledAt:    req.ScheduledAt,
 	})
 	if err != nil {
-		logrus.WithError(err).Error("Create: service error")
+		zlog.Logger.Error().Err(err).Msg("Create: service error")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}

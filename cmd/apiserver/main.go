@@ -1,8 +1,11 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"flag"
+	"time"
+
 	"github.com/BurntSushi/toml"
 	"github.com/aabbuukkaarr8/TG-BOT/cmd/apiserver/rabbit"
 	"github.com/aabbuukkaarr8/TG-BOT/cmd/apiserver/tg_bot"
@@ -14,8 +17,7 @@ import (
 	"github.com/aabbuukkaarr8/TG-BOT/internal/service"
 	"github.com/aabbuukkaarr8/TG-BOT/internal/store"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
-	"log"
-	"time"
+	"github.com/wb-go/wbf/zlog"
 )
 
 var srv *service.Service
@@ -27,15 +29,16 @@ var (
 func main() {
 	flag.StringVar(&configPath, "config-path", "configs/apiserver.toml", "path to config file")
 	flag.Parse()
+	zlog.Init()
 	config := apiserver.NewConfig()
 	_, err := toml.DecodeFile(configPath, config)
 	if err != nil {
-		log.Fatal(err)
+		zlog.Logger.Fatal().Err(err).Msg("config load error")
 	}
 	db := store.New()
 	err = db.Open(config.Store.DatabaseURL)
 	if err != nil {
-		log.Fatal(err)
+		zlog.Logger.Fatal().Err(err).Msg("db open error")
 		return
 	}
 	rabbit.ConnectRabbit()
@@ -60,16 +63,16 @@ func main() {
 }
 
 func startWorker(rabbit *rabbitmq.Client, bot *tgbotapi.BotAPI) {
-	log.Println("Starting worker")
+	zlog.Logger.Info().Msg("Starting worker")
 	messages, _ := rabbit.ConsumeNotifications()
 
 	for msg := range messages {
 		// Парсим сообщение из RabbitMQ
 		var notification models.Notification
 		json.Unmarshal(msg.Body, &notification)
-		status, err := srv.Status(notification.ID)
+		status, err := srv.Status(context.Background(), notification.ID)
 		if err != nil {
-			log.Println(err)
+			zlog.Logger.Error().Err(err).Msg("status error")
 		}
 
 		// Проверяем время
@@ -90,7 +93,7 @@ func startWorker(rabbit *rabbitmq.Client, bot *tgbotapi.BotAPI) {
 				msg.Nack(false, true)
 			} else {
 				msg.Ack(false)
-				srv.Sent(notification.ID)
+				srv.Sent(context.Background(), notification.ID)
 			}
 
 		}

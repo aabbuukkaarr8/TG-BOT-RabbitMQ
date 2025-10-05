@@ -1,11 +1,12 @@
 package tg_bot
 
 import (
-	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
-	"github.com/joho/godotenv"
-	"log"
 	"os"
 	"strings"
+
+	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+	"github.com/joho/godotenv"
+	"github.com/wb-go/wbf/zlog"
 )
 
 func Init() (*tgbotapi.BotAPI, error) {
@@ -20,7 +21,7 @@ func Init() (*tgbotapi.BotAPI, error) {
 	}
 
 	bot.Debug = false
-	log.Printf("Authorized on account %s", bot.Self.UserName)
+	zlog.Logger.Info().Str("bot", bot.Self.UserName).Msg("Authorized on account")
 
 	go func() {
 		u := tgbotapi.NewUpdate(0)
@@ -31,7 +32,7 @@ func Init() (*tgbotapi.BotAPI, error) {
 			if update.Message == nil {
 				continue
 			} else if strings.HasPrefix(update.Message.Text, "/remind") { // If we got a message
-				log.Printf("[%s] %s", update.Message.From.UserName, update.Message.Text)
+				zlog.Logger.Info().Str("user", update.Message.From.UserName).Str("text", update.Message.Text).Msg("incoming message")
 				parts := strings.SplitN(update.Message.Text, " ", 5)
 				if len(parts) != 5 {
 					bot.Send(tgbotapi.NewMessage(update.Message.Chat.ID, "wrong format"))
@@ -47,7 +48,7 @@ func Init() (*tgbotapi.BotAPI, error) {
 				go sendToAPI(update.Message.Chat.ID, text, scheduledTime)
 				bot.Send(tgbotapi.NewMessage(update.Message.Chat.ID, "Напоминание установлено!"))
 			} else if strings.HasPrefix(update.Message.Text, "/delete") {
-				log.Printf("[%s] %s", update.Message.From.UserName, update.Message.Text)
+				zlog.Logger.Info().Str("user", update.Message.From.UserName).Str("text", update.Message.Text).Msg("incoming message")
 				parts := strings.SplitN(update.Message.Text, " ", 2)
 				if len(parts) != 2 {
 					bot.Send(tgbotapi.NewMessage(update.Message.Chat.ID, "Формат: /delete [id]"))
@@ -60,7 +61,7 @@ func Init() (*tgbotapi.BotAPI, error) {
 				go deleteNotification(update.Message.Chat.ID, id)
 				bot.Send(tgbotapi.NewMessage(update.Message.Chat.ID, "Удаляем напоминание..."))
 			} else if strings.HasPrefix(update.Message.Text, "/status") {
-				log.Printf("[%s] %s", update.Message.From.UserName, update.Message.Text)
+				zlog.Logger.Info().Str("user", update.Message.From.UserName).Str("text", update.Message.Text).Msg("incoming message")
 				parts := strings.SplitN(update.Message.Text, " ", 2)
 				if len(parts) != 2 {
 					bot.Send(tgbotapi.NewMessage(update.Message.Chat.ID, "Формат: /status [id]"))

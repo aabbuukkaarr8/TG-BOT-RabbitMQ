@@ -2,13 +2,13 @@ package rabbit
 
 import (
 	"github.com/aabbuukkaarr8/TG-BOT/internal/rabbitmq"
-	"log"
+	"github.com/wb-go/wbf/zlog"
 )
 
 func ConnectRabbit() {
 	rabbit, err := rabbitmq.New("amqp://guest:guest@localhost:5672/")
 	if err != nil {
-		log.Fatal("Failed to connect to RabbitMQ:", err)
+		zlog.Logger.Fatal().Err(err).Msg("Failed to connect to RabbitMQ")
 	}
 	defer rabbit.Close()
 }

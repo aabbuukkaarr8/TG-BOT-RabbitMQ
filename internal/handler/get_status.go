@@ -1,23 +1,24 @@
 package handler
 
 import (
-	"github.com/gin-gonic/gin"
-	"github.com/sirupsen/logrus"
 	"net/http"
 	"strconv"
+
+	"github.com/gin-gonic/gin"
+	"github.com/wb-go/wbf/zlog"
 )
 
 func (h *Handler) Status(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.ParseInt(idStr, 10, 64)
 	if err != nil {
-		logrus.WithError(err).Errorf("[strconv.Atoi] Your ID is not a number")
+		zlog.Logger.Error().Err(err).Msg("[strconv.Atoi] Your ID is not a number")
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	status, err := h.srv.Status(id)
+	status, err := h.srv.Status(c.Request.Context(), id)
 	if err != nil {
-		logrus.WithError(err).Errorf("[h.Status] Cannot get status")
+		zlog.Logger.Error().Err(err).Msg("[h.Status] Cannot get status")
 	}
 
 	if status == "scheduled" {

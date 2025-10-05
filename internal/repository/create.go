@@ -10,7 +10,7 @@ func (r *Repository) Create(ctx context.Context, notification Notification) (Not
 VALUES ($1, $2, $3, $4, $5, $6)
 RETURNING id, telegram_chat_id, message, scheduled_at, status, attempt, created_at`
 
-	err := r.store.GetConn().QueryRowContext(ctx, query,
+	err := r.store.DB.QueryRowContext(ctx, query,
 		notification.TelegramChatID,
 		notification.Message,
 		notification.ScheduledAt,

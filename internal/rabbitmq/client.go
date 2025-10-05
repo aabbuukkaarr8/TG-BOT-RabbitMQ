@@ -4,8 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+
 	"github.com/aabbuukkaarr8/TG-BOT/internal/models"
-	"log"
+	"github.com/wb-go/wbf/zlog"
 
 	amqp "github.com/rabbitmq/amqp091-go"
 )
@@ -65,7 +66,7 @@ func New(url string) (*Client, error) {
 		return nil, fmt.Errorf("failed to bind queue: %w", err)
 	}
 
-	log.Println("RabbitMQ connected and configured")
+	zlog.Logger.Info().Msg("RabbitMQ connected and configured")
 	return &Client{conn: conn, channel: channel}, nil
 }
 
@@ -96,7 +97,7 @@ func (c *Client) PublishNotification(ctx context.Context, notification *models.N
 		return fmt.Errorf("failed to publish message: %w", err)
 	}
 
-	log.Printf("📨 Notification %s published to RabbitMQ", notification.ID)
+	zlog.Logger.Info().Int64("id", notification.ID).Msg("📨 Notification published to RabbitMQ")
 	return nil
 }
 
@@ -117,7 +118,7 @@ func (c *Client) ConsumeNotifications() (<-chan amqp.Delivery, error) {
 		return nil, fmt.Errorf("failed to consume messages: %w", err)
 	}
 
-	log.Println("👂 Started consuming messages from RabbitMQ")
+	zlog.Logger.Info().Msg("👂 Started consuming messages from RabbitMQ")
 	return messages, nil
 }
 
